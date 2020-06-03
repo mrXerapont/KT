@@ -1,0 +1,46 @@
+version: '3'
+services:
+ python:
+  build:
+   context: .
+   dockerfile: ./Dockerfile
+  volumes:
+   - ./ktfirsttry:/ktfirsttry
+  ports:
+   - 8000:8000
+  depends_on:
+   - db
+   - redis
+ db:
+  image: postgres
+  environment:
+   - POSTGRES_DB=django_db
+   - POSTGRES_USER=user_name
+   - POSTGRES_PASSWORD=password
+   - TZ=Europe/Samara
+  build:
+   context: .
+   dockerfile: ./Dockerfile.db
+ redis:
+  image: redis
+  command: redis-server
+ celery:
+  build: .
+  command: celery -A ktfirsttry worker -l INFO
+  volumes:
+   - ./ktfirsttry:/ktfirsttry
+  depends_on:
+   - python
+   - redis
+   - db
+ celery-beat:
+  build: .
+  command: celery -A ktfirsttry beat -l INFO
+  volumes:
+   - ./ktfirsttry:/ktfirsttry
+  depends_on:
+   - python
+   - celery
+   - redis
+
+
